@@ -1,0 +1,4 @@
+output/*
+companion/*
+codegen/*
+deprecated/*
