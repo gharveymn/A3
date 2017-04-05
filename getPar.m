@@ -1,4 +1,4 @@
 function par=getPar
 	par.plotImg = true;
-	par.MP = false;
+	par.MP = true;
 end

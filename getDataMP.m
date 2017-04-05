@@ -39,11 +39,11 @@ function [omg,eigVects,r,conds]=getDataMP(numKVals,kVals,h,interval,numEigs)
 		[V,D] = eig(A,B,'vector');
 		%omg(i:i-1+numEigs) = max(D(~imag(D) & isfinite(D)));
 		%eigVects(:,i:i-1+numEigs) = V(:,D(~imag(D) & isfinite(D)));
-		DF = D(~imag(omg) & isfinite(omg));
-		VF = V(:,~imag(omg) & isfinite(omg));
+		DF = D(~imag(D) & isfinite(D));
+		VF = V(:,~imag(D) & isfinite(D));
 		[maxDF,maxDFI] = max(DF);
 		omg(i) = maxDF;
-		eigVects(:,i) = V(:,maxDFI);
+		eigVects(:,i) = VF(:,maxDFI);
 		disp(i)
 		
 		whos

@@ -20,7 +20,8 @@ function [omg,eigVects,r,conds]=getData(numKVals,kVals,h,interval,numEigs)
 	v0(sz+1) = 0; %Apply sr boundary cond
 	
 	conds = zeros(size(kVals,1),1);
-	
+	%figure
+	%hold on
 	for i=1:numKVals
 		
 		k = kVals(i);
@@ -31,18 +32,42 @@ function [omg,eigVects,r,conds]=getData(numKVals,kVals,h,interval,numEigs)
 		A = [M11 M12 M13
 			SW,[M23;M33]];
 		
-		
-		%conds(i) = cond(A)
 		opts = struct('isreal',1,'v0',v0);
+		
+		
+		[V,D] = eigs(A,B,5,'sm',opts);
+		D = diag(D);
+		omg(i) = D(5);
+		eigVects(:,i) = V(:,5);
+		%DF = D(isfinite(D));
+		%VF = V(:,isfinite(D));
+		%[maxDF,maxDFI] = max(real(DF));
+		%omg(i) = DF(maxDFI);
+		%eigVects(:,i) = VF(:,maxDFI);
+		
+		
+		%{
+		for j = 1:20
+			[V,D] = eigs(A,B,j,'sm',opts);
+			disp(['(' num2str(i) ',' num2str(j) ')'])
+			disp(D(end))
+			scatter(j,real(D(end)),10,[1-1/i,0,1/i],'.')
+			drawnow
+		end
+		%}
+		%{
 		[V,D] = eigs(A,B,numEigs,'sm',opts);
 		j = 2;
-		while(~imag(D(end)))
+		
+		while(imag(D(end)) ~= 0)
 			[V,D] = eigs(A,B,j,'sm',opts);
+			disp(['(' num2str(i) ',' num2str(j) ')'])
+			disp(D(end))
 			j = j+1;
 		end
-		
-		omg(i) = D(end);
-		eigVects(:,i) = V(:,end);
+		%}
+		%omg(i) = D(end);
+		%eigVects(:,i) = V(:,end);
 		disp(i)
 	
 	end

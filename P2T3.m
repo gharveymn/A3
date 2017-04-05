@@ -7,7 +7,7 @@ function P2T3
 	
 		numKVals = 10;
 		kMin = mp('0');
-		kMax = mp('4');
+		kMax = mp('1');
 		kVals = mp(linspace(kMin,kMax,numKVals))';
 		%kVals = logis(kVals,kMin,kMax);
 		h = mp('0.1');
@@ -18,12 +18,12 @@ function P2T3
 	else
 		numKVals = 100;
 		kMin = 0;
-		kMax = 4;
+		kMax = 1;
 		kVals = linspace(kMin,kMax,numKVals)';
 		%kVals = logis(kVals,kMin,kMax);
 		h = 0.01;
 		%interval = mp('[0.001,0.021]');
-		interval = [0.001,15];
+		interval = [0.001,50];
 		numEigs = 1;
 		[omg,eigVects,r] = getData(numKVals,kVals,h,interval,numEigs);
 	end
