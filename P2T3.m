@@ -2,16 +2,16 @@ function P2T3
 	
 	par = getPar;
 	
-	numKVals = 1000;
-	kMin = .15;%0.06
-	kMax = .55;
+	numKVals = 10;
+	kMin = 0;
+	kMax = 4;
 	kVals = linspace(kMin,kMax,numKVals)';
 	%kVals = logis(kVals,kMin,kMax);
-	h = 0.001;
-	interval = [0.001,20];
+	h = 0.1;
+	interval = [0.001,200];
 	numEigs = 1;
 	
-	[omg,eigVects,r] = getData(numKVals,kVals,h,interval,numEigs);
+	[omg,eigVects,r,conds] = getData(numKVals,kVals,h,interval,numEigs);
 	
 	kPlots = kron(kVals,ones(numEigs,1));
 	
@@ -34,14 +34,14 @@ function P2T3
 		eigVectsR = real(eigVects);
 		eigVectsI = imag(eigVects);
 		
+		cRs = abs((kMax - kVals)/normalize);
 
 		figure(1)
 		clf
 		hold on
 		for i=1:szEV
-			%cR = abs(imMin - omgI(i))/normalize;
-			cR = abs((kMax - kVals(i))/normalize);
-			plot3(r,eigVectsR(1:sz,i),eigVectsI(1:sz,i),'Color',[1-cR,0,cR]);
+			scatter3(r,eigVectsR(1:sz,i),eigVectsI(1:sz,i),5,[1-cRs(i),0,cRs(i)],'.');
+			
 		end
 		%plot(r,eigVects(1:sz,15))
 		%hold on
@@ -55,9 +55,7 @@ function P2T3
 		clf
 		hold on
 		for i=1:szEV
-			%cR = abs(imMin - omgI(i))/normalize;
-			cR = abs((kMax - kVals(i))/normalize);
-			plot3(r,eigVectsR(sz+1:2*sz,i),eigVectsI(sz+1:2*sz,i),'Color',[1-cR,0,cR]);
+			scatter3(r,eigVectsR(sz+1:2*sz,i),eigVectsI(sz+1:2*sz,i),5,[1-cRs(i),0,cRs(i)],'.');
 		end
 		xlabel('r');
 		ylabel('re(s)');
@@ -69,9 +67,7 @@ function P2T3
 		clf
 		hold on
 		for i=1:szEV
-			%cR = abs(imMin - omgI(i))/normalize;
-			cR = abs((kMax - kVals(i))/normalize);
-			plot3(r,eigVectsR(2*sz+1:end,i),eigVectsI(2*sz+1:end,i),'Color',[1-cR,zeros(size(cR,1),1),cR]);
+			scatter3(r,eigVectsR(2*sz+1:end,i),eigVectsI(2*sz+1:end,i),5,[1-cRs(i),0,cRs(i)],'.');
 		end
 		xlabel('r');
 		ylabel('re(phi)');
@@ -103,6 +99,15 @@ function P2T3
 		xlabel('k');
 		makeylabel('im(o)');
 		drawnow;
+		
+		figure(6)
+		clf
+		plot(kPlots,conds,'.','Color','k')
+		xlabel('k');
+		makeylabel('condition number');
+		drawnow;
+		
+		disp(conds)
 	
 	else
 

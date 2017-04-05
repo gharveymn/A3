@@ -1,4 +1,4 @@
-function [omg,eigVects,r]=getData(numKVals,kVals,h,interval,numEigs)
+function [omg,eigVects,r,conds]=getData(numKVals,kVals,h,interval,numEigs)
 		
 	%Build Matrices
 	r = (interval(1):h:interval(2))';
@@ -8,8 +8,8 @@ function [omg,eigVects,r]=getData(numKVals,kVals,h,interval,numEigs)
 	rho0 = 1./(1 + r.^2./8).^2;
 	g0 = r./(2.*(r.^2./8 + 1));
 	
-	[M12,M23,SW,deriv,deriv2,rInvM,ident,rho0M]=buildMatrices(r,sz,rho0,g0);
-	B = sparse((1:sz)',(1:sz)',ones(sz,1),3*sz,3*sz);
+	[M12,M23,SW,deriv,deriv2,g1Deriv,rInvM,ident,rho0M]=buildMatrices(r,sz,rho0,g0);
+	B = sparse(mp(1:sz)',mp(1:sz)',ones(sz,1),3*sz,3*sz);
 	
 	omg = zeros(numEigs*numKVals,1);
 	eigVects = zeros(3*sz,numEigs*numKVals);
@@ -18,17 +18,19 @@ function [omg,eigVects,r]=getData(numKVals,kVals,h,interval,numEigs)
 	v0(sz) = 0; %Apply rho1 boundary cond
 	v0(sz+1) = 0; %Apply sr boundary cond
 	
+	conds = zeros(size(kVals,1),1);
 	
 	for i=1:numKVals
 		
 		k = kVals(i);
 		M11 = -k^2*ident;
 		M13 = -k^2*rho0M;
-		M33 = -(deriv2 + rInvM*deriv - k^2*ident);
+		M33 = -(g1Deriv^2 + rInvM*g1Deriv - k^2*ident);
 
 		A = [M11 M12 M13
 			SW,[M23;M33]];
 
+		conds(i) = condest(A);
 		opts = struct('isreal',1,'v0',v0);
 		[V,D] = eigs(A,B,numEigs,'sm',opts);
 		eigVects(:,i:i-1+numEigs) = V;
@@ -85,7 +87,7 @@ function [omg,eigVects,r]=getData(numKVals,kVals,h,interval,numEigs)
 	
 end
 
-function [M12,M23,SW,deriv,deriv2,rInvM,ident,rho0M]=buildMatrices(r,sz,rho0,g0)
+function [M12,M23,SW,deriv,deriv2,g1Deriv,rInvM,ident,rho0M]=buildMatrices(r,sz,rho0,g0)
 	
 	%TODO: Fix derivative matrices 
 	shft = circshift(r,-2);
@@ -112,19 +114,23 @@ function [M12,M23,SW,deriv,deriv2,rInvM,ident,rho0M]=buildMatrices(r,sz,rho0,g0)
 	
 	deriv2 = deriv^2;
 	deriv2(1,:) = zeros(1,sz);
-	deriv2(end,:) = zeros(1,sz);
+	deriv2(end,:) = deriv2(1,:);
 	
 	rho0M = sparse(diagn,diagn,rho0);
 	%g0 = 4.*r./(8 + r.^2);
 	g0M = sparse(diagn,diagn,g0);
 	zer = sparse(sz,sz);
 	
+	g1Deriv = deriv;
+	g1Deriv(1,:) = zeros(1,sz);
+	g1Deriv(end,:) = g1Deriv(1,:);
+	
 	%M11 = -k^2*ident;
 	M12 = -(deriv + rInvM);
 	%M13 = -k^2*rho0M;
 	%M21 = deriv + g0M;
 	%M22 = ident;
-	M23 = rho0M*deriv;
+	M23 = rho0M*g1Deriv;
 	%M31 = ident;
 	%M32 = zer;
 	%M33 = -(deriv2 + rInvM*deriv - k^2*ident);

@@ -40,6 +40,7 @@ function P2T2
 	
 	f2 = figure(2);
 	p3 = plot(rinit,difVec);
+	title('Numerical Change')
 	drawnow;
 	
 	i = 0;
