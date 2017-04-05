@@ -2,17 +2,33 @@ function P2T3
 	
 	par = getPar;
 	
-	numKVals = 10;
-	kMin = 0;
-	kMax = 4;
-	kVals = linspace(kMin,kMax,numKVals)';
-	%kVals = logis(kVals,kMin,kMax);
-	h = 0.1;
-	interval = [0.001,200];
-	numEigs = 1;
+	if(par.MP)
+		mp.Digits(34);
 	
-	[omg,eigVects,r,conds] = getData(numKVals,kVals,h,interval,numEigs);
+		numKVals = 10;
+		kMin = mp('0');
+		kMax = mp('4');
+		kVals = mp(linspace(kMin,kMax,numKVals))';
+		%kVals = logis(kVals,kMin,kMax);
+		h = mp('0.1');
+		%interval = mp('[0.001,0.021]');
+		interval = mp('[0.001,15]');
+		numEigs = 1;
+		[omg,eigVects,r] = getDataMP(numKVals,kVals,h,interval,numEigs);
+	else
+		numKVals = 100;
+		kMin = 0;
+		kMax = 4;
+		kVals = linspace(kMin,kMax,numKVals)';
+		%kVals = logis(kVals,kMin,kMax);
+		h = 0.01;
+		%interval = mp('[0.001,0.021]');
+		interval = [0.001,15];
+		numEigs = 1;
+		[omg,eigVects,r] = getData(numKVals,kVals,h,interval,numEigs);
+	end
 	
+	disp(omg)
 	kPlots = kron(kVals,ones(numEigs,1));
 	
 	szEV = size(eigVects,2);
@@ -25,6 +41,8 @@ function P2T3
 
 		imMin = min(omgI);
 		imMax = max(omgI);
+		
+		[oM,oMInd] = max(omgR);
 
 		normalize = kMax;
 		if(~normalize)
@@ -40,7 +58,13 @@ function P2T3
 		clf
 		hold on
 		for i=1:szEV
-			scatter3(r,eigVectsR(1:sz,i),eigVectsI(1:sz,i),5,[1-cRs(i),0,cRs(i)],'.');
+			if(i == oMInd)
+				clr = [0,1,0];	
+			else
+				clr = [1-cRs(i),0,cRs(i)];
+			end
+			scatter3(r,eigVectsR(1:sz,i),eigVectsI(1:sz,i),5,clr,'.');
+			%plot3(r,eigVectsR(1:sz,i),eigVectsI(1:sz,i),'Color',clr);
 			
 		end
 		%plot(r,eigVects(1:sz,15))
@@ -55,7 +79,13 @@ function P2T3
 		clf
 		hold on
 		for i=1:szEV
-			scatter3(r,eigVectsR(sz+1:2*sz,i),eigVectsI(sz+1:2*sz,i),5,[1-cRs(i),0,cRs(i)],'.');
+			if(i == oMInd)
+				clr = [0,1,0];	
+			else
+				clr = [1-cRs(i),0,cRs(i)];
+			end
+			scatter3(r,eigVectsR(sz+1:2*sz,i),eigVectsI(sz+1:2*sz,i),5,clr,'.');
+			%plot3(r,eigVectsR(sz+1:2*sz,i),eigVectsI(sz+1:2*sz,i),'Color',clr);
 		end
 		xlabel('r');
 		ylabel('re(s)');
@@ -67,7 +97,13 @@ function P2T3
 		clf
 		hold on
 		for i=1:szEV
-			scatter3(r,eigVectsR(2*sz+1:end,i),eigVectsI(2*sz+1:end,i),5,[1-cRs(i),0,cRs(i)],'.');
+			if(i == oMInd)
+				clr = [0,1,0];	
+			else
+				clr = [1-cRs(i),0,cRs(i)];
+			end
+			scatter3(r,eigVectsR(2*sz+1:end,i),eigVectsI(2*sz+1:end,i),5,clr,'.');
+			%plot3(r,eigVectsR(2*sz+1:end,i),eigVectsI(2*sz+1:end,i),'Color',clr);
 		end
 		xlabel('r');
 		ylabel('re(phi)');
@@ -79,7 +115,9 @@ function P2T3
 		clf
 		%plot(r(1:size(negomgsq)),negomgsq);
 		cR = kron(abs((kMax - kVals)./normalize),ones(numEigs,1));
-		scatter3(kPlots,omgR,omgI,[],[1-cR,zeros(size(cR,1),1),cR],'.')
+		clr = [1-cR,zeros(size(cR,1),1),cR];
+		clr((oMInd-1)*numEigs + 1:oMInd*numEigs,:) = repmat([0,1,0],numEigs,1);
+		scatter3(kPlots,omgR,omgI,[],clr,'.')
 		%plot(kPlots,abs(omg),'.','Color','r')
 		xlabel('k');
 		ylabel('re(o)');
@@ -88,7 +126,7 @@ function P2T3
 		
 		figure(5)
 		clf
-		scatter(kPlots,omgR,[],[1-cR,zeros(size(cR,1),1),cR],'.');
+		scatter(kPlots,omgR,[],clr,'.');
 		xlabel('k');
 		makeylabel('-o^2');
 		drawnow;
@@ -100,6 +138,7 @@ function P2T3
 		makeylabel('im(o)');
 		drawnow;
 		
+		%{
 		figure(6)
 		clf
 		plot(kPlots,conds,'.','Color','k')
@@ -108,7 +147,7 @@ function P2T3
 		drawnow;
 		
 		disp(conds)
-	
+		%}
 	else
 
 		figure(1)
