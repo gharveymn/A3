@@ -72,50 +72,6 @@ function [omg,eigVects,r,conds]=getData(numKVals,kVals,h,interval,numEigs)
 	
 	end
 	
-	%{
-	omegaf = omg(end);
-	
-	rn = (0.001:0.001:10)';
-	sz1 = size(rn,1);
-	
-	rho0 = 1./(1 + rn.^2./8).^2;
-	g0 = rn./(2.*(rn.^2./8 + 1));
-	
-	[M12,M23,SW,deriv,deriv2,rInvM,ident,rho0M]=buildMatrices(rn,sz1,rho0,g0);
-	
-	M11 = (omegaf-k^2)*ident;
-	M13 = -k^2*rho0M;
-	M33 = -(deriv2 + rInvM*deriv - k^2*ident);
-	
-	
-	A = [M11 M12 M13
-		SW,[M23;M33]];
-	
-	
-	%[U,S,V] = svds(A);
-	V = spspaces(A,2,10^-10);
-	
-	%[M,I] = min(abs(S(S~=0)))
-	
-	%min(abs(S(S~=0)))
-	
-	%figure
-	%imagesc(S)
-	%drawnow;
-	
-	x = V(:,1);
-	
-	
-	figure(7)
-	plot(rn,x(1:sz1));
-	
-	figure(8)
-	plot(rn,x(sz1+1:2*sz1));
-	
-	figure(9)
-	plot(rn,x(2*sz1+1:end));
-	
-	%}
 	
 	
 end
