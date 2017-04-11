@@ -22,10 +22,11 @@ function P2T3
 		kVals = linspace(kMin,kMax,numKVals)';
 		%kVals = logis(kVals,kMin,kMax);
 		h = 0.01;
+		numPoints = 1000;
 		%interval = mp('[0.001,0.021]');
-		interval = [0.001,50];
+		interval = [0.001,1e6];
 		numEigs = 1;
-		[omg,eigVects,r] = getData(numKVals,kVals,h,interval,numEigs);
+		[omg,eigVects,r] = getData(numKVals,kVals,h,interval,numEigs,numPoints);
 	end
 	
 	disp(omg)

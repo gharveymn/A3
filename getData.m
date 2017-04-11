@@ -1,7 +1,8 @@
-function [omg,eigVects,r,conds]=getData(numKVals,kVals,h,interval,numEigs)
+function [omg,eigVects,r,conds]=getData(numKVals,kVals,h,interval,numEigs,numPoints)
 		
 	%Build Matrices
-	r = (interval(1):h:interval(2))';
+	%r = (interval(1):h:interval(2))';
+	r = log(linspace(interval(1),interval(2),numPoints)');
 	%r
 	%r = logis(r,interval(1),interval(2));
 	sz = size(r,1);
