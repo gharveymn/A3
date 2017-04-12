@@ -16,24 +16,26 @@ function P2T3
 		numEigs = 1;
 		[omg,eigVects,r] = getDataMP(numKVals,kVals,h,interval,numEigs);
 	else
-		numKVals = 100;
-		kMin = 0;
-		kMax = 1;
+		numKVals = 5;
+		kMin = 0.01;
+		kMax = .4;
 		kVals = linspace(kMin,kMax,numKVals)';
 		%kVals = logis(kVals,kMin,kMax);
 		h = 0.01;
-		numPoints = 1000;
+		numPoints = 10000;
 		%interval = mp('[0.001,0.021]');
-		interval = [0.001,1e6];
+		interval = [1.001,1e9];
 		numEigs = 1;
 		[omg,eigVects,r] = getData(numKVals,kVals,h,interval,numEigs,numPoints);
 	end
 	
-	disp(omg)
+	disp(r(1:100))
+	%disp(omg)
 	kPlots = kron(kVals,ones(numEigs,1));
 	
 	szEV = size(eigVects,2);
 	sz = size(r,1);
+	
 	
 	if(par.plotImg)
 	
@@ -124,19 +126,19 @@ function P2T3
 		ylabel('re(o)');
 		zlabel('im(o)');
 		drawnow;
-		
-		figure(5)
-		clf
-		scatter(kPlots,omgR,[],clr,'.');
-		xlabel('k');
-		makeylabel('-o^2');
-		drawnow;
 
-		figure(6)
+		figure(5)
 		clf
 		plot(kPlots,omgI,'.','Color','b')
 		xlabel('k');
 		makeylabel('im(o)');
+		drawnow;
+		
+		figure(6)
+		clf
+		scatter(kPlots,omgR,[],clr,'.');
+		xlabel('k');
+		makeylabel('-o^2');
 		drawnow;
 		
 		%{
