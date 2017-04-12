@@ -1,24 +1,25 @@
-function [omg,eigVects,u,conds]=getData(numKVals,kVals,h,interval,numEigs,numPoints)
-		
+function [omg,eigVects,r,conds]=getData(numKVals,kVals,logisParams,numEigs,numPoints)
+	
 	%Build Matrices
-	r = linspace(interval(1),interval(2),numPoints)';
-	u = log(r);
-	plot(r,u)
-	drawnow
-	%r
-	%r = logis(r,interval(1),interval(2));
+	r = linspace(logisParams{2:3},numPoints)';
+	%bilogis is centered at midpoints of domain and range, this finds half of domain and range
+	u = halfbilogit(r,logisParams{:});
 	sz = size(u,1);
+	
+	%figure
+	%hold on
+	%plot(r,u)
 	
 	rho0 = 1./(1 + r.^2./8).^2;
 	g0 = r./(2.*(r.^2./8 + 1));
 	
-	[M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,uInvM,rInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0);
+	[M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams);
 	B = sparse(1:sz,1:sz,ones(1,sz),3*sz,3*sz);
 	
 	omg = zeros(numEigs*numKVals,1);
 	eigVects = zeros(3*sz,numEigs*numKVals);
 	
-	v0 = [rho0;u*.03;-log(rho0)];
+	v0 = [rho0;r*.03;-log(rho0)];
 	v0(sz) = 0; %Apply rho1 boundary cond
 	v0(sz+1) = 0; %Apply sr boundary cond
 	
@@ -35,8 +36,7 @@ function [omg,eigVects,u,conds]=getData(numKVals,kVals,h,interval,numEigs,numPoi
 		A = [M11 M12 M13
 			SW,[M23;M33]];
 		
-		
-		opts = struct('isreal',1,'v0',v0);
+		opts = struct('isreal',1,'p',20,'tol',1e-16,'maxit',1000,'disp',0,'v0',v0);
 		
 		[V,D] = eigs(A,B,1,'sm',opts);
 		D = diag(D);
@@ -51,17 +51,16 @@ function [omg,eigVects,u,conds]=getData(numKVals,kVals,h,interval,numEigs,numPoi
 	
 end
 
-function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,uInvM,rInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0)
+function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams)
 	
 	ident = speye(sz);
 	diagn = (1:sz)';
-	uInvM = sparse(diagn,diagn,1./u);
 	rInvM = sparse(diagn,diagn,1./r);
+	uInvM = sparse(diagn,diagn,1./u);
 	
 	i = [(2:sz-1)';(2:sz-1)'];
 	j = [(3:sz)';(1:sz-2)'];
 	v = [ones(sz-2,1);-ones(sz-2,1)];
-	
 	
 	%Derivatives:
 	shft = circshift(u,-2);
@@ -76,8 +75,17 @@ function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,uInvM,rInvM,ident,rho0M]=buildMat
 	
 	d2du2 = ddu^2;
 	
-	dudr = uInvM;
-	d2udr2 = -uInvM.^2;
+	dudr = sparse(diagn,diagn,...
+				dhalfbilogit(r,logisParams{1},1,logisParams{2:end})...
+				);
+				
+	d2udr2 = sparse(diagn,diagn,...
+				dhalfbilogit(r,logisParams{1},2,logisParams{2:end})...
+				);
+	
+	%plot(r,diag(dudr))
+	%plot(r,diag(d2udr2))
+	
 	%d2dudr(1,:) = zeros(1,sz);
 	%d2dudr(end,:) = d2dudr(1,:);
 	
@@ -101,10 +109,13 @@ function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,uInvM,rInvM,ident,rho0M]=buildMat
 	d2g1du2 = dg1du^2;
 	
 	d2g1dr2 = (dudr.^2)*d2g1du2 + d2udr2*dg1du;
+	d2g1dr2(1,:) = zeros(1,sz);
+	d2g1dr2(end,:) = d2g1dr2(1,:);
+	
 	%d2g1dr2 = d2udr2*dg1du;
 	
 	%M11 = -k^2*ident;
-	M12 = -(dfdr + uInvM);
+	M12 = -(dfdr + rInvM);
 	%M13 = -k^2*rho0M;
 	%M21 = deriv + g0M;
 	%M22 = ident;

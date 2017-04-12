@@ -12,24 +12,22 @@ function P2T3
 		%kVals = logis(kVals,kMin,kMax);
 		h = mp('0.1');
 		%interval = mp('[0.001,0.021]');
-		interval = mp('[0.001,15]');
+		domain = mp('[0.001,15]');
 		numEigs = 1;
-		[omg,eigVects,r] = getDataMP(numKVals,kVals,h,interval,numEigs);
+		[omg,eigVects,r] = getDataMP(numKVals,kVals,h,domain,numEigs);
 	else
-		numKVals = 5;
-		kMin = 0.01;
-		kMax = .4;
+		numKVals = par.numKVals;
+		kMin = par.kMin;
+		kMax = par.kMax;
 		kVals = linspace(kMin,kMax,numKVals)';
 		%kVals = logis(kVals,kMin,kMax);
-		h = 0.01;
-		numPoints = 10000;
 		%interval = mp('[0.001,0.021]');
-		interval = [1.001,1e9];
+		logisParams = [{par.curveParam},par.domain,par.transformeddomain];
 		numEigs = 1;
-		[omg,eigVects,r] = getData(numKVals,kVals,h,interval,numEigs,numPoints);
+		[omg,eigVects,r] = getData(numKVals,kVals,logisParams,numEigs,par.numPoints);
 	end
 	
-	disp(r(1:100))
+	%disp(r(1:100))
 	%disp(omg)
 	kPlots = kron(kVals,ones(numEigs,1));
 	
@@ -47,7 +45,7 @@ function P2T3
 		
 		[oM,oMInd] = max(omgR);
 
-		normalize = kMax;
+		normalize = kMax-kMin;
 		if(~normalize)
 			normalize = 1;
 		end
@@ -66,8 +64,14 @@ function P2T3
 			else
 				clr = [1-cRs(i),0,cRs(i)];
 			end
-			scatter3(r,eigVectsR(1:sz,i),eigVectsI(1:sz,i),5,clr,'.');
-			%plot3(r,eigVectsR(1:sz,i),eigVectsI(1:sz,i),'Color',clr);
+			
+			if(par.useScatter)
+				scatter3(r,eigVectsR(1:sz,i),eigVectsI(1:sz,i),5,clr,'.');
+			else
+				plot3(r,eigVectsR(1:sz,i),eigVectsI(1:sz,i),'Color',clr);
+			end
+			
+			
 			
 		end
 		%plot(r,eigVects(1:sz,15))
@@ -76,6 +80,7 @@ function P2T3
 		xlabel('r');
 		ylabel('re(p)');
 		zlabel('im(p)');
+		xlim([0,max(real(r))])
 		drawnow;
 
 		figure(2)
@@ -87,12 +92,18 @@ function P2T3
 			else
 				clr = [1-cRs(i),0,cRs(i)];
 			end
-			scatter3(r,eigVectsR(sz+1:2*sz,i),eigVectsI(sz+1:2*sz,i),5,clr,'.');
-			%plot3(r,eigVectsR(sz+1:2*sz,i),eigVectsI(sz+1:2*sz,i),'Color',clr);
+			
+			if(par.useScatter)
+				scatter3(r,eigVectsR(sz+1:2*sz,i),eigVectsI(sz+1:2*sz,i),5,clr,'.');
+			else
+				plot3(r,eigVectsR(sz+1:2*sz,i),eigVectsI(sz+1:2*sz,i),'Color',clr);
+			end
+			
 		end
 		xlabel('r');
 		ylabel('re(s)');
 		zlabel('im(s)');
+		xlim([0,max(real(r))])
 		%plot(r,eigVects(sz+1:2*sz,15))
 		drawnow;
 
@@ -105,12 +116,16 @@ function P2T3
 			else
 				clr = [1-cRs(i),0,cRs(i)];
 			end
-			scatter3(r,eigVectsR(2*sz+1:end,i),eigVectsI(2*sz+1:end,i),5,clr,'.');
-			%plot3(r,eigVectsR(2*sz+1:end,i),eigVectsI(2*sz+1:end,i),'Color',clr);
+			if(par.useScatter)
+				scatter3(r,eigVectsR(2*sz+1:end,i),eigVectsI(2*sz+1:end,i),5,clr,'.');
+			else
+				plot3(r,eigVectsR(2*sz+1:end,i),eigVectsI(2*sz+1:end,i),'Color',clr);
+			end
 		end
 		xlabel('r');
 		ylabel('re(phi)');
 		zlabel('im(phi)');
+		xlim([0,max(real(r))])
 		%plot(r,eigVects(2*sz+1:end,15))
 		drawnow;
 		
