@@ -2,6 +2,8 @@ function P2T3
 	
 	par = getPar;
 	
+	figs = par.figs;
+	
 	if(par.MP)
 		mp.Digits(34);
 	
@@ -44,6 +46,8 @@ function P2T3
 		%imMax = max(omgI);
 		
 		[oM,oMInd] = max(omgR);
+		disp(['Max -omega^2 found at k = ' num2str(kVals(oMInd))])
+		disp(['Largest value for -omega^2: ' num2str(oM)])
 
 		normalize = kMax-kMin;
 		if(~normalize)
@@ -55,7 +59,7 @@ function P2T3
 		
 		cRs = abs((kMax - kVals)/normalize);
 
-		figure(1)
+		set(groot,'currentfigure',figs{1})
 		clf
 		hold on
 		for i=1:szEV
@@ -71,19 +75,18 @@ function P2T3
 				plot3(r,eigVectsR(1:sz,i),eigVectsI(1:sz,i),'Color',clr);
 			end
 			
-			
-			
 		end
 		%plot(r,eigVects(1:sz,15))
 		%hold on
 		%plot(r,eigVects(1:sz,5))
-		xlabel('r');
-		ylabel('re(p)');
-		zlabel('im(p)');
+		xlabel('$r$','interpreter','latex','fontsize',14);
+		ylabel('Re$(\rho_1)$','interpreter','latex','fontsize',14);
+		zlabel('Im$(\rho_1)$','interpreter','latex','fontsize',14);
+		title('$\rho_1$','interpreter','latex','fontsize',14);
 		xlim([0,max(real(r))])
 		drawnow;
 
-		figure(2)
+		set(groot,'currentfigure',figs{2})
 		clf
 		hold on
 		for i=1:szEV
@@ -100,14 +103,15 @@ function P2T3
 			end
 			
 		end
-		xlabel('r');
-		ylabel('re(s)');
-		zlabel('im(s)');
+		xlabel('$r$','interpreter','latex','fontsize',14);
+		ylabel('Re$(s_1)$','interpreter','latex','fontsize',14);
+		zlabel('Im$(s_1)$','interpreter','latex','fontsize',14);
+		title('$s_1$','interpreter','latex','fontsize',14);
 		xlim([0,max(real(r))])
 		%plot(r,eigVects(sz+1:2*sz,15))
 		drawnow;
 
-		figure(3)
+		set(groot,'currentfigure',figs{3})
 		clf
 		hold on
 		for i=1:szEV
@@ -122,38 +126,50 @@ function P2T3
 				plot3(r,eigVectsR(2*sz+1:end,i),eigVectsI(2*sz+1:end,i),'Color',clr);
 			end
 		end
-		xlabel('r');
-		ylabel('re(phi)');
-		zlabel('im(phi)');
+		xlabel('$r$','interpreter','latex','fontsize',14);
+		ylabel('Re$(\phi_1)$','interpreter','latex','fontsize',14);
+		zlabel('Im$(\phi_1)$','interpreter','latex','fontsize',14);
+		title('$\phi_1$','interpreter','latex','fontsize',14);
 		xlim([0,max(real(r))])
 		%plot(r,eigVects(2*sz+1:end,15))
 		drawnow;
 		
-		figure(4)
+		set(groot,'currentfigure',figs{4})
 		clf
+		hold on
 		%plot(r(1:size(negomgsq)),negomgsq);
 		cR = kron(abs((kMax - kVals)./normalize),ones(numEigs,1));
 		clr = [1-cR,zeros(size(cR,1),1),cR];
 		clr((oMInd-1)*numEigs + 1:oMInd*numEigs,:) = repmat([0,1,0],numEigs,1);
 		scatter3(kPlots,omgR,omgI,[],clr,'.')
-		%plot(kPlots,abs(omg),'.','Color','r')
-		xlabel('k');
-		ylabel('re(o)');
-		zlabel('im(o)');
+		scatter3(kPlots(oMInd),oM,omgI(oMInd),[],[0,1,0],'.');
+		hold off
+		xlabel('$k$','interpreter','latex','fontsize',14);
+		ylabel('Re$(-\omega^2)$','interpreter','latex','fontsize',14);
+		zlabel('Im$(-\omega^2)$','interpreter','latex','fontsize',14);
+		title('$-\omega^2$','interpreter','latex','fontsize',14);
 		drawnow;
 
-		figure(5)
+		set(groot,'currentfigure',figs{5})
 		clf
-		plot(kPlots,omgI,'.','Color','b')
-		xlabel('k');
-		makeylabel('im(o)');
+		hold on
+		scatter(kPlots,omgI,[],'b','.')
+		scatter(kPlots(oMInd),oM,[],[0,1,0],'.');
+		hold off
+		xlabel('$k$','interpreter','latex','fontsize',14);
+		ylabel('Im$(-\omega^2)$','interpreter','latex','fontsize',14);
+		title('Imaginary part of $-\omega^2$','interpreter','latex','fontsize',14);
 		drawnow;
 		
-		figure(6)
+		set(groot,'currentfigure',figs{6})
 		clf
+		hold on
 		scatter(kPlots,omgR,[],clr,'.');
-		xlabel('k');
-		makeylabel('-o^2');
+		scatter(kPlots(oMInd),oM,[],[0,1,0],'.');
+		hold off
+		xlabel('$k$','interpreter','latex','fontsize',14);
+		ylabel('Re$(-\omega^2)$','interpreter','latex','fontsize',14);
+		title('Real part of $-\omega^2$','interpreter','latex','fontsize',14);
 		drawnow;
 		
 		%{
