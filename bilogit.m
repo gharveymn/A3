@@ -4,6 +4,11 @@ function xout=bilogit(xin,c_3,lo,hi,newlo,newhi)
 	%Author: Gene Harvey
 	
     switch nargin
+	    case 2
+			lo = min(xin);
+			hi = max(xin);
+			newlo = lo;
+			newhi = hi;
 	    case 4
 		   newlo = lo;
 		   newhi = hi;

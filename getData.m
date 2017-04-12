@@ -6,10 +6,6 @@ function [omg,eigVects,r,conds]=getData(numKVals,kVals,logisParams,numEigs,numPo
 	u = halfbilogit(r,logisParams{:});
 	sz = size(u,1);
 	
-	%figure
-	%hold on
-	%plot(r,u)
-	
 	rho0 = 1./(1 + r.^2./8).^2;
 	g0 = r./(2.*(r.^2./8 + 1));
 	
@@ -19,9 +15,9 @@ function [omg,eigVects,r,conds]=getData(numKVals,kVals,logisParams,numEigs,numPo
 	omg = zeros(numEigs*numKVals,1);
 	eigVects = zeros(3*sz,numEigs*numKVals);
 	
-	v0 = [rho0;r*.03;-log(rho0)];
-	v0(sz) = 0; %Apply rho1 boundary cond
-	v0(sz+1) = 0; %Apply sr boundary cond
+	%v0 = [rho0;r*.03;-log(rho0)];
+	%v0(sz) = 0; %Apply rho1 boundary cond
+	%v0(sz+1) = 0; %Apply sr boundary cond
 	
 	conds = zeros(size(kVals,1),1);
 	%figure
@@ -32,16 +28,20 @@ function [omg,eigVects,r,conds]=getData(numKVals,kVals,logisParams,numEigs,numPo
 		M11 = -k^2*ident;
 		M13 = -k^2*rho0M;
 		M33 = -(d2g1dr2 + rInvM*dg1dr - k^2*ident);
+		%M33 = -d2g1dr2 + k^2*ident;
 
 		A = [M11 M12 M13
 			SW,[M23;M33]];
 		
-		opts = struct('isreal',1,'p',20,'tol',1e-16,'maxit',1000,'disp',0,'v0',v0);
+		opts = struct('isreal',1,'p',60,'tol',1e-30,'maxit',200,'disp',0);%,'v0',v0);
 		
 		[V,D] = eigs(A,B,1,'sm',opts);
 		D = diag(D);
 		omg(i) = D(1);
 		eigVects(:,i) = V(:,1);
+		
+		
+		
 		disp(i)
 	
 	end
@@ -99,18 +99,28 @@ function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMat
 	zer = sparse(sz,sz);
 	
 	dg1dr = dfdr;
-	dg1dr(1,:) = zeros(1,sz);
-	dg1dr(end,:) = dg1dr(1,:);
+	dg1dr(1,:) = 0;
+	dg1dr(end,:) = 0;
+	%dg1dr(:,1) = zeros(sz,1);
+	%dg1dr(:,end) = dg1dr(:,1);
 	
 	dg1du = ddu;
-	dg1du(1,:) = zeros(1,sz);
-	dg1du(end,:) = dg1du(1,:);
+	dg1du(1,:) = 0;
+	dg1du(end,:) = 0;
+	%dg1du(:,1) = zeros(sz,1);
+	%dg1du(:,end) = dg1du(:,1);
 	
 	d2g1du2 = dg1du^2;
+	d2g1du2(1,:) = 0;
+	d2g1du2(end,:) = 0;
+	d2g1du2(:,1) = 0;
+	d2g1du2(:,end) = 0;
 	
 	d2g1dr2 = (dudr.^2)*d2g1du2 + d2udr2*dg1du;
-	d2g1dr2(1,:) = zeros(1,sz);
-	d2g1dr2(end,:) = d2g1dr2(1,:);
+	d2g1dr2(1,:) = 0;
+	d2g1dr2(end,:) = 0;
+	d2g1dr2(:,1) = 0;
+	d2g1dr2(:,end) = 0;
 	
 	%d2g1dr2 = d2udr2*dg1du;
 	

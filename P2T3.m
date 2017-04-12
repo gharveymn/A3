@@ -40,8 +40,8 @@ function P2T3
 		omgR = real(omg);
 		omgI = imag(omg);
 
-		imMin = min(omgI);
-		imMax = max(omgI);
+		%imMin = min(omgI);
+		%imMax = max(omgI);
 		
 		[oM,oMInd] = max(omgR);
 

@@ -1,16 +1,15 @@
-function [omg,eigVects,u,conds]=getDataFull(numKVals,kVals,domain,transformeddomain,numEigs,numPoints)
+function [omg,eigVects,r,conds]=getDataFull(numKVals,kVals,logisParams,numEigs,numPoints)
 		
 	%Build Matrices
-	r = linspace(domain{:},numPoints)';
+	r = linspace(logisParams{2:3},numPoints)';
 	%bilogis is centered at midpoints of domain and range, this finds half of domain and range
-	logitParams = {10,domain{:},transformeddomain{:}};
-	u = halfbilogit(r,logitParams{:});
+	u = halfbilogit(r,logisParams{:});
 	sz = size(u,1);
 	
 	rho0 = 1./(1 + r.^2./8).^2;
 	g0 = r./(2.*(r.^2./8 + 1));
 	
-	[M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logitParams);
+	[M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams);
 	B = diag([ones(1,sz),ones(1,2*sz)]);
 	
 	omg = zeros(numEigs*numKVals,1);
@@ -45,7 +44,7 @@ function [omg,eigVects,u,conds]=getDataFull(numKVals,kVals,domain,transformeddom
 	
 end
 
-function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logitParams)
+function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams)
 	
 	ident = eye(sz);
 	rInvM = diag(1./r);
@@ -63,8 +62,8 @@ function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMat
 	
 	d2du2 = ddu^2;
 	
-	dudr = diag(dhalfbilogit(r,1,logitParams{:}));
-	d2udr2 = diag(dhalfbilogit(r,2,logitParams{:}));
+	dudr = diag(dhalfbilogit(r,logisParams{1},1,logisParams{2:end}));
+	d2udr2 = diag(dhalfbilogit(r,logisParams{1},2,logisParams{2:end}));
 	%d2dudr(1,:) = zeros(1,sz);
 	%d2dudr(end,:) = d2dudr(1,:);
 	
@@ -86,8 +85,12 @@ function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMat
 	dg1du(end,:) = dg1du(1,:);
 	
 	d2g1du2 = dg1du^2;
+	d2g1du2(1,:) = zeros(1,sz);
+	d2g1du2(end,:) = d2g1du2(1,:);
 	
 	d2g1dr2 = (dudr.^2)*d2g1du2 + d2udr2*dg1du;
+	d2g1dr2(1,:) = zeros(1,sz);
+	d2g1dr2(end,:) = d2g1dr2(1,:);
 	%d2g1dr2 = d2udr2*dg1du;
 	
 	%M11 = -k^2*ident;
