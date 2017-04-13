@@ -1,4 +1,4 @@
-function P2T3
+function figs=P2T3
 	
 	par = getPar;
 	
@@ -131,6 +131,8 @@ function P2T3
 		zlabel('Im$(\phi_1)$','interpreter','latex','fontsize',14);
 		title('$\phi_1$','interpreter','latex','fontsize',14);
 		xlim([0,max(real(r))])
+		yl = 5*std(reshape(eigVectsR(2*sz+1:end,:),szEV*sz,1));
+		ylim([-yl,yl]);
 		%plot(r,eigVects(2*sz+1:end,15))
 		drawnow;
 		
@@ -172,16 +174,6 @@ function P2T3
 		title('Real part of $-\omega^2$','interpreter','latex','fontsize',14);
 		drawnow;
 		
-		%{
-		figure(6)
-		clf
-		plot(kPlots,conds,'.','Color','k')
-		xlabel('k');
-		makeylabel('condition number');
-		drawnow;
-		
-		disp(conds)
-		%}
 	else
 
 		figure(1)

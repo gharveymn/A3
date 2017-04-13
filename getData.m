@@ -40,8 +40,6 @@ function [omg,eigVects,r,conds]=getData(numKVals,kVals,logisParams,numEigs,numPo
 		omg(i) = D(1);
 		eigVects(:,i) = V(:,1);
 		
-		
-		
 		disp(i)
 	
 	end
@@ -86,15 +84,10 @@ function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMat
 	%plot(r,diag(dudr))
 	%plot(r,diag(d2udr2))
 	
-	%d2dudr(1,:) = zeros(1,sz);
-	%d2dudr(end,:) = d2dudr(1,:);
-	
 	dfdr = dudr*ddu;
 	d2fdr2 = (dudr.^2)*d2du2 + d2udr2*ddu;
-	%d2fdr2 = d2udr2*ddu;
 	
 	rho0M = sparse(diagn,diagn,rho0);
-	%g0 = 4.*r./(8 + r.^2);
 	g0M = sparse(diagn,diagn,g0);
 	zer = sparse(sz,sz);
 	
@@ -134,6 +127,7 @@ function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMat
 	%M32 = zer;
 	%M33 = -(deriv2 + rInvM*deriv - k^2*ident);
 	
+	%Southwest corner of the matrix, [M21 M22; M31 M32].
 	SW = [dfdr+g0M, ident
 		ident,zer];
 	
