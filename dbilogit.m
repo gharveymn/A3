@@ -1,4 +1,4 @@
-function xout=dbilogit(xin,c_3,order,lo,hi,newlo,newhi)
+function xout=dbilogit(order,xin,c_3,lo,hi,newlo,newhi)
 	%Derivative of logit, up to order 2
 	%
 	%Author: Gene Harvey

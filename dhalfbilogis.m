@@ -1,4 +1,4 @@
-function xout=dhalfbilogis(xin,c_3,order,lo,hi,newlo,newhi)
+function xout=dhalfbilogis(order,xin,c_3,lo,hi,newlo,newhi)
 	%Derivative of logit, uc_1 to order 2
 	%
 	%Author: Gene Harvey

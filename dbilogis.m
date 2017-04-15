@@ -1,4 +1,4 @@
-function xout=dbilogis(xin,c_3,order,newlo,newhi,lo,hi)
+function xout=dbilogis(order,xin,c_3,lo,hi,newlo,newhi)
 	%Derivative of logis, up to order 2
 	%
 	%Author: Gene Harvey

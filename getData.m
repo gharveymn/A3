@@ -1,20 +1,21 @@
-function [omg,eigVects,r]=getData(numKVals,kVals,logisParams,numPoints,getVects)
+function [omg,eigVects,r]=getData(numKVals,kVals,logisParams,numPoints,plotVects,transform,dtransform)
 	
 	%Build Matrices
 	r = linspace(logisParams{2:3},numPoints)';
+	
 	%bilogis is centered at midpoints of domain and range, this finds half of domain and range
-	u = halfbilogit(r,logisParams{:});
-	sz = size(u,1);
+	u = transform(r,logisParams{:});
+	sz = numel(u);
 	
 	rho0 = 1./(1 + r.^2./8).^2;
 	g0 = r./(2.*(r.^2./8 + 1));
 	
-	[M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams);
+	[M12,M23,SW,dg1dr,d2g1dr2,rInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams,dtransform);
 	B = sparse(1:sz,1:sz,ones(1,sz),3*sz,3*sz);
 	
 	omg = zeros(numKVals,1);
 	
-	if(getVects)
+	if(plotVects)
 		eigVects = zeros(3*sz,numKVals);
 	else
 		eigVects = [];
@@ -37,13 +38,13 @@ function [omg,eigVects,r]=getData(numKVals,kVals,logisParams,numPoints,getVects)
 		A = [M11 M12 M13
 			SW,[M23;M33]];
 		
-		opts = struct('isreal',1,'p',120,'maxit',200,'disp',0,'v0',v0);
+		opts = struct('isreal',1,'p',150,'maxit',200,'disp',0,'v0',v0);
 		
 		[V,D] = eigs(A,B,1,'sm',opts);
 		D = diag(D);
 		omg(i) = D(1);
 		
-		if(getVects)
+		if(plotVects)
 			eigVects(:,i) = V(:,1);
 		end
 		
@@ -53,12 +54,11 @@ function [omg,eigVects,r]=getData(numKVals,kVals,logisParams,numPoints,getVects)
 	
 end
 
-function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams)
+function [M12,M23,SW,dg1dr,d2g1dr2,rInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams,dtransform)
 	
 	ident = speye(sz);
 	diagn = (1:sz)';
 	rInvM = sparse(diagn,diagn,1./r);
-	uInvM = sparse(diagn,diagn,1./u);
 	
 	i = [(2:sz-1)';(2:sz-1)'];
 	j = [(3:sz)';(1:sz-2)'];
@@ -78,11 +78,11 @@ function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMat
 	d2du2 = ddu^2;
 	
 	dudr = sparse(diagn,diagn,...
-				dhalfbilogit(r,logisParams{1},1,logisParams{2:end})...
+				dtransform(1,r,logisParams{:})...
 				);
 				
 	d2udr2 = sparse(diagn,diagn,...
-				dhalfbilogit(r,logisParams{1},2,logisParams{2:end})...
+				dtransform(2,r,logisParams{:})...
 				);
 	
 	%plot(r,diag(dudr))
