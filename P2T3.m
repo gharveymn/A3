@@ -1,68 +1,60 @@
 function figs=P2T3
 	
+	%Get parameters
 	par = getPar;
 	
-	figs = par.figs;
+	numKVals = par.numKVals;
+	kMin = par.kMin;
+	kMax = par.kMax;
+	kVals = linspace(kMin,kMax,numKVals)';
+	logisParams = [{par.curveParam},par.domain,par.transformeddomain];
 	
-	if(par.MP)
-		mp.Digits(34);
-	
-		numKVals = 10;
-		kMin = mp('0');
-		kMax = mp('1');
-		kVals = mp(linspace(kMin,kMax,numKVals))';
-		%kVals = logis(kVals,kMin,kMax);
-		h = mp('0.1');
-		%interval = mp('[0.001,0.021]');
-		domain = mp('[0.001,15]');
-		numEigs = 1;
-		[omg,eigVects,r] = getDataMP(numKVals,kVals,h,domain,numEigs);
+	if(par.plotVects)
+		figs = {figure(1),figure(2),figure(3),figure(4),figure(5),figure(6)};
 	else
-		numKVals = par.numKVals;
-		kMin = par.kMin;
-		kMax = par.kMax;
-		kVals = linspace(kMin,kMax,numKVals)';
-		%kVals = logis(kVals,kMin,kMax);
-		%interval = mp('[0.001,0.021]');
-		logisParams = [{par.curveParam},par.domain,par.transformeddomain];
-		numEigs = 1;
-		[omg,eigVects,r] = getData(numKVals,kVals,logisParams,numEigs,par.numPoints);
+		figs = {figure(1),figure(2),figure(3)};
 	end
+	drawnow
 	
-	%disp(r(1:100))
-	%disp(omg)
-	kPlots = kron(kVals,ones(numEigs,1));
+	%endblock
+	
+	%*Data collection*
+	[omg,eigVects,r] = getData(numKVals,kVals,logisParams,par.numPoints,par.plotVects);
+	
 	
 	szEV = size(eigVects,2);
 	sz = size(r,1);
 	
+	omgR = real(omg);
+	omgI = imag(omg);
+
+	[oM,oMInd] = max(omgR);
+	disp(['Max -omega^2 found at k = ' num2str(kVals(oMInd))])
+	disp(['Largest value for -omega^2: ' num2str(oM)])
+
+
+	%Create color map
+	normalize = kMax-kMin;
+	if(~normalize)
+		normalize = 1;
+	end
+	cRs = abs((kMax - kVals)./normalize);
 	
-	if(par.plotImg)
 	
-		omgR = real(omg);
-		omgI = imag(omg);
-
-		%imMin = min(omgI);
-		%imMax = max(omgI);
-		
-		[oM,oMInd] = max(omgR);
-		disp(['Max -omega^2 found at k = ' num2str(kVals(oMInd))])
-		disp(['Largest value for -omega^2: ' num2str(oM)])
-
-		normalize = kMax-kMin;
-		if(~normalize)
-			normalize = 1;
-		end
-
+	if(par.plotVects)
+	
 		eigVectsR = real(eigVects);
-		eigVectsI = imag(eigVects);
+		eigVectsI = imag(eigVects);		
 		
-		cRs = abs((kMax - kVals)/normalize);
-
+		%Begin plotting
+		
+		%\rho_1
 		set(groot,'currentfigure',figs{1})
 		clf
 		hold on
 		for i=1:szEV
+			
+			%If this is the max -\omega^2 value, plot green, otherwise continue with R-B gradient
 			if(i == oMInd)
 				clr = [0,1,0];	
 			else
@@ -76,9 +68,6 @@ function figs=P2T3
 			end
 			
 		end
-		%plot(r,eigVects(1:sz,15))
-		%hold on
-		%plot(r,eigVects(1:sz,5))
 		xlabel('$r$','interpreter','latex','fontsize',14);
 		ylabel('Re$(\rho_1)$','interpreter','latex','fontsize',14);
 		zlabel('Im$(\rho_1)$','interpreter','latex','fontsize',14);
@@ -86,6 +75,8 @@ function figs=P2T3
 		xlim([0,max(real(r))])
 		drawnow;
 
+		
+		%s_1
 		set(groot,'currentfigure',figs{2})
 		clf
 		hold on
@@ -108,9 +99,10 @@ function figs=P2T3
 		zlabel('Im$(s_1)$','interpreter','latex','fontsize',14);
 		title('$s_1$','interpreter','latex','fontsize',14);
 		xlim([0,max(real(r))])
-		%plot(r,eigVects(sz+1:2*sz,15))
 		drawnow;
 
+		
+		%\phi_1
 		set(groot,'currentfigure',figs{3})
 		clf
 		hold on
@@ -131,20 +123,22 @@ function figs=P2T3
 		zlabel('Im$(\phi_1)$','interpreter','latex','fontsize',14);
 		title('$\phi_1$','interpreter','latex','fontsize',14);
 		xlim([0,max(real(r))])
+		
+		%Trouble with boundaries messing up plots, 5std should do the trick
 		yl = 5*std(reshape(eigVectsR(2*sz+1:end,:),szEV*sz,1));
 		ylim([-yl,yl]);
-		%plot(r,eigVects(2*sz+1:end,15))
 		drawnow;
 		
+		
+		%k vs real and imaginary -\omega^2
 		set(groot,'currentfigure',figs{4})
 		clf
 		hold on
-		%plot(r(1:size(negomgsq)),negomgsq);
-		cR = kron(abs((kMax - kVals)./normalize),ones(numEigs,1));
-		clr = [1-cR,zeros(size(cR,1),1),cR];
-		clr((oMInd-1)*numEigs + 1:oMInd*numEigs,:) = repmat([0,1,0],numEigs,1);
-		scatter3(kPlots,omgR,omgI,[],clr,'.')
-		scatter3(kPlots(oMInd),oM,omgI(oMInd),[],[0,1,0],'.');
+		
+		%Color mapping
+		clr = [1-cRs,zeros(size(cRs,1),1),cRs];
+		scatter3(kVals,omgR,omgI,[],clr,'.')
+		scatter3(kVals(oMInd),oM,omgI(oMInd),[],[0,1,0],'.');
 		hold off
 		xlabel('$k$','interpreter','latex','fontsize',14);
 		ylabel('Re$(-\omega^2)$','interpreter','latex','fontsize',14);
@@ -152,22 +146,24 @@ function figs=P2T3
 		title('$-\omega^2$','interpreter','latex','fontsize',14);
 		drawnow;
 
+		%k vs imaginary part of -\omega^2
 		set(groot,'currentfigure',figs{5})
 		clf
 		hold on
-		scatter(kPlots,omgI,[],'b','.')
-		scatter(kPlots(oMInd),oM,[],[0,1,0],'.');
+		scatter(kVals,omgI,[],'b','.')
+		scatter(kVals(oMInd),oM,[],[0,1,0],'.');
 		hold off
 		xlabel('$k$','interpreter','latex','fontsize',14);
 		ylabel('Im$(-\omega^2)$','interpreter','latex','fontsize',14);
 		title('Imaginary part of $-\omega^2$','interpreter','latex','fontsize',14);
 		drawnow;
 		
+		%k vs real part of -\omega^2
 		set(groot,'currentfigure',figs{6})
 		clf
 		hold on
-		scatter(kPlots,omgR,[],clr,'.');
-		scatter(kPlots(oMInd),oM,[],[0,1,0],'.');
+		scatter(kVals,omgR,[],clr,'.');
+		scatter(kVals(oMInd),oM,[],[0,1,0],'.');
 		hold off
 		xlabel('$k$','interpreter','latex','fontsize',14);
 		ylabel('Re$(-\omega^2)$','interpreter','latex','fontsize',14);
@@ -175,41 +171,47 @@ function figs=P2T3
 		drawnow;
 		
 	else
-
-		figure(1)
+		
+		%Same stuff but without plotting the vectors
+				
+		%k vs real and imaginary -\omega^2
+		set(groot,'currentfigure',figs{1})
 		clf
-		for i=1:szEV
-			plot(r,eigVects(1:sz,i),'.','Color','r');
-		end
-		xlabel('r');
-		ylabel('rho1');
+		hold on
+		
+		%Color mapping
+		clr = [1-cRs,zeros(size(cRs,1),1),cRs];
+		scatter3(kVals,omgR,omgI,[],clr,'.')
+		scatter3(kVals(oMInd),oM,omgI(oMInd),[],[0,1,0],'.');
+		hold off
+		xlabel('$k$','interpreter','latex','fontsize',14);
+		ylabel('Re$(-\omega^2)$','interpreter','latex','fontsize',14);
+		zlabel('Im$(-\omega^2)$','interpreter','latex','fontsize',14);
+		title('$-\omega^2$','interpreter','latex','fontsize',14);
 		drawnow;
 
-		figure(2)
+		%k vs imaginary part of -\omega^2
+		set(groot,'currentfigure',figs{2})
 		clf
-		for i=1:szEV
-			plot(r,eigVects(sz+1:2*sz,i),'.','Color','g');
-		end
-		xlabel('r');
-		xlabel('s1');
-		drawnow;
-
-		figure(3)
-		clf
-		for i=1:szEV
-			plot(r,eigVects(2*sz+1:end,i),'.','Color','b');
-		end
-		xlabel('r');
-		ylabel('phi1');
+		hold on
+		scatter(kVals,omgI,[],'b','.')
+		scatter(kVals(oMInd),oM,[],[0,1,0],'.');
+		hold off
+		xlabel('$k$','interpreter','latex','fontsize',14);
+		ylabel('Im$(-\omega^2)$','interpreter','latex','fontsize',14);
+		title('Imaginary part of $-\omega^2$','interpreter','latex','fontsize',14);
 		drawnow;
 		
-		figure(4)
+		%k vs real part of -\omega^2
+		set(groot,'currentfigure',figs{3})
 		clf
-		for i=1:szEV
-			plot(kPlots,omg,'.','Color','k');
-		end
-		xlabel('k');
-		ylabel('-o^2');
+		hold on
+		scatter(kVals,omgR,[],clr,'.');
+		scatter(kVals(oMInd),oM,[],[0,1,0],'.');
+		hold off
+		xlabel('$k$','interpreter','latex','fontsize',14);
+		ylabel('Re$(-\omega^2)$','interpreter','latex','fontsize',14);
+		title('Real part of $-\omega^2$','interpreter','latex','fontsize',14);
 		drawnow;
 	
 	end

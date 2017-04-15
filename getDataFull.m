@@ -1,4 +1,4 @@
-function [omg,eigVects,r,conds]=getDataFull(numKVals,kVals,logisParams,numEigs,numPoints)
+function [omg,eigVects,r,conds]=getDataFull(numKVals,kVals,logisParams,numPoints)
 		
 	%Build Matrices
 	r = linspace(logisParams{2:3},numPoints)';
@@ -12,8 +12,8 @@ function [omg,eigVects,r,conds]=getDataFull(numKVals,kVals,logisParams,numEigs,n
 	[M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams);
 	B = diag([ones(1,sz),ones(1,2*sz)]);
 	
-	omg = zeros(numEigs*numKVals,1);
-	eigVects = zeros(3*sz,numEigs*numKVals);
+	omg = zeros(numKVals,1);
+	eigVects = zeros(3*sz,numKVals);
 	
 	conds = zeros(size(kVals,1),1);
 	%figure

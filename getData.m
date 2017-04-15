@@ -1,4 +1,4 @@
-function [omg,eigVects,r,conds]=getData(numKVals,kVals,logisParams,numEigs,numPoints)
+function [omg,eigVects,r]=getData(numKVals,kVals,logisParams,numPoints,getVects)
 	
 	%Build Matrices
 	r = linspace(logisParams{2:3},numPoints)';
@@ -12,14 +12,18 @@ function [omg,eigVects,r,conds]=getData(numKVals,kVals,logisParams,numEigs,numPo
 	[M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams);
 	B = sparse(1:sz,1:sz,ones(1,sz),3*sz,3*sz);
 	
-	omg = zeros(numEigs*numKVals,1);
-	eigVects = zeros(3*sz,numEigs*numKVals);
+	omg = zeros(numKVals,1);
 	
-	%v0 = [rho0;r*.03;-log(rho0)];
-	%v0(sz) = 0; %Apply rho1 boundary cond
-	%v0(sz+1) = 0; %Apply sr boundary cond
+	if(getVects)
+		eigVects = zeros(3*sz,numKVals);
+	else
+		eigVects = [];
+	end
 	
-	conds = zeros(size(kVals,1),1);
+	v0 = [rho0;r*.03;-log(rho0)];
+	v0(sz) = 0; %Apply rho1 boundary cond
+	v0(sz+1) = 0; %Apply sr boundary cond
+	
 	%figure
 	%hold on
 	for i=1:numKVals
@@ -33,19 +37,19 @@ function [omg,eigVects,r,conds]=getData(numKVals,kVals,logisParams,numEigs,numPo
 		A = [M11 M12 M13
 			SW,[M23;M33]];
 		
-		opts = struct('isreal',1,'p',60,'tol',1e-30,'maxit',200,'disp',0);%,'v0',v0);
+		opts = struct('isreal',1,'p',120,'maxit',200,'disp',0,'v0',v0);
 		
 		[V,D] = eigs(A,B,1,'sm',opts);
 		D = diag(D);
 		omg(i) = D(1);
-		eigVects(:,i) = V(:,1);
+		
+		if(getVects)
+			eigVects(:,i) = V(:,1);
+		end
 		
 		disp(i)
 	
 	end
-	
-	
-	
 	
 end
 
@@ -92,28 +96,28 @@ function [M12,M23,SW,dfdr,d2fdr2,dg1dr,d2g1dr2,rInvM,uInvM,ident,rho0M]=buildMat
 	zer = sparse(sz,sz);
 	
 	dg1dr = dfdr;
-	dg1dr(1,:) = 0;
-	dg1dr(end,:) = 0;
+	%dg1dr(1,:) = 0;
+	%dg1dr(end,:) = 0;
 	%dg1dr(:,1) = zeros(sz,1);
 	%dg1dr(:,end) = dg1dr(:,1);
 	
 	dg1du = ddu;
 	dg1du(1,:) = 0;
 	dg1du(end,:) = 0;
-	%dg1du(:,1) = zeros(sz,1);
-	%dg1du(:,end) = dg1du(:,1);
+	%dg1du(:,1) = 0;
+	%dg1du(:,end) = 0;
 	
 	d2g1du2 = dg1du^2;
-	d2g1du2(1,:) = 0;
-	d2g1du2(end,:) = 0;
-	d2g1du2(:,1) = 0;
-	d2g1du2(:,end) = 0;
+	%d2g1du2(1,:) = 0;
+	%d2g1du2(end,:) = 0;
+	%d2g1du2(:,1) = 0;
+	%d2g1du2(:,end) = 0;
 	
 	d2g1dr2 = (dudr.^2)*d2g1du2 + d2udr2*dg1du;
-	d2g1dr2(1,:) = 0;
-	d2g1dr2(end,:) = 0;
-	d2g1dr2(:,1) = 0;
-	d2g1dr2(:,end) = 0;
+	%d2g1dr2(1,:) = 0;
+	%d2g1dr2(end,:) = 0;
+	%d2g1dr2(:,1) = 0;
+	%d2g1dr2(:,end) = 0;
 	
 	%d2g1dr2 = d2udr2*dg1du;
 	
