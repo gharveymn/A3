@@ -1,9 +1,20 @@
-function [omg,eigVects,r]=getData(numKVals,kVals,logisParams,numPoints,plotVects,transform,dtransform)
+function [omg,eigVects,r]=GetData(numKVals,kVals,logisParams,numPoints,transform,dtransform,plotPack)
 	
-	%Build Matrices
+	
+	plotVects = plotPack{3};
+	
 	r = linspace(logisParams{2:3},numPoints)';
 	
-	%bilogis is centered at midpoints of domain and range, this finds half of domain and range
+	badzero = find(~r);
+	if(~isempty(badzero))
+		r(badzero) = r(badzero+1)/2;
+		if(max(r) == -min(r))
+			disp('Warning: Rectified zero in domain; domain is not symmetric.')
+		else
+			disp('Warning: Rectified zero in domain')
+		end
+	end
+	
 	u = transform(r,logisParams{:});
 	sz = numel(u);
 	
@@ -15,7 +26,7 @@ function [omg,eigVects,r]=getData(numKVals,kVals,logisParams,numPoints,plotVects
 	
 	omg = zeros(numKVals,1);
 	
-	if(plotVects)
+	if(plotVects)%which is plotVects
 		eigVects = zeros(3*sz,numKVals);
 	else
 		eigVects = [];
@@ -45,10 +56,14 @@ function [omg,eigVects,r]=getData(numKVals,kVals,logisParams,numPoints,plotVects
 		omg(i) = D(1);
 		
 		if(plotVects)
-			eigVects(:,i) = V(:,1);
+			v = V(:,1);
+			eigVects(:,i) = v;
+			plotResults(r,v,omg(1:i),kVals(1:i),plotPack{1:end-1},plotPack{end}(1:i,:))
+		else
+			plotResults(r,[],omg(1:i),kVals(1:i),plotPack{1:end-1},plotPack{end}(1:i,:))
 		end
 		
-		disp(i)
+		disp([num2str(i) ': k = ' num2str(k)])
 	
 	end
 	

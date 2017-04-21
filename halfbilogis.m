@@ -1,9 +1,11 @@
 function xout=halfbilogis(xin,c_3,lo,hi,newlo,newhi)
 	%halfbilogis
 	%Makes a bijective logistic transform from 0 to 1. That is, f:[0,1]->[0,1] invertible s.t.
-	%	        e^(c_3/2)-e^(-c_3*(x-1/2))
-	% f(x) =  ----------------------------------.
-	%     	(e^(c_3/2)-1)*(1+e^(-c_3*(x-1/2)))
+	%								/                  c_1              1 \
+	%	f(x) = newlo + (2 newhi - 2 newlo) | c_4 + ------------------------- - - |
+	%								|          / c_3 (lo - xin) \       2 |
+	%								|       exp| -------------- | + 1     |
+	%								\          \   2 hi - 2 lo  /         /
 	%
 	%Author: Gene Harvey.
 	
