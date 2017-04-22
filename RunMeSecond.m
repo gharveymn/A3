@@ -44,7 +44,7 @@ function figs=RunMeSecond
 	clrs = [1-cRs,zeros(numKVals,1),cRs];
 	
 	%These are static variables, easier to just put them in a cell array
-	plotPack = [par.domain,{par.plotVects},{par.useScatter},{figs},{clrs}];
+	plotPack = [par.domain,{par.plotVects},{par.useScatter},{figs},{clrs},{par.livePlot}];
 	
 	%*Data collection*
 	[omg,eigVects,r] = GetData(numKVals,kVals,logisParams,sz,par.T,par.dT,plotPack);
@@ -53,7 +53,7 @@ function figs=RunMeSecond
 	disp(['Max -omega^2 found at k = ' num2str(kVals(oMInd))])
 	disp(['Largest value for -omega^2: ' num2str(oM)])
 		
-	PlotResults(r,eigVects,omg,kVals,plotPack{:})
+	PlotResults(r,eigVects,omg,kVals,plotPack{1:end-1})
 	
 	
 end

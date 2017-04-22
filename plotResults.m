@@ -116,7 +116,7 @@ function PlotResults(r,eigVects,omg,kVals,minr,maxr,plotVects,useScatter,figs,cl
 	clf
 	scatter(kVals,omgI,[],'b','.')
 	hold on
-	scatter(kVals(oMInd),oM,[],clrs(oMInd,:),'.');
+	scatter(kVals(oMInd),omgI(oMInd),[],clrs(oMInd,:),'.');
 	hold off
 	xlabel('$k$','interpreter','latex','fontsize',14);
 	ylabel('Im$(-\omega^2)$','interpreter','latex','fontsize',14);

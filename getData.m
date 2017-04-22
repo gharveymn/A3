@@ -2,6 +2,7 @@ function [omg,eigVects,r]=GetData(numKVals,kVals,logisParams,numPoints,transform
 	
 	
 	plotVects = plotPack{3};
+	livePlot = plotPack{7};
 	
 	r = linspace(logisParams{2:3},numPoints)';
 	
@@ -51,19 +52,26 @@ function [omg,eigVects,r]=GetData(numKVals,kVals,logisParams,numPoints,transform
 		
 		opts = struct('isreal',1,'p',150,'maxit',200,'disp',0,'v0',v0);
 		
-		[V,D] = eigs(A,B,1,'sm',opts);
-		D = diag(D);
-		omg(i) = D(1);
+		try
+			[V,D] = eigs(A,B,1,'sm',opts);
+			D = diag(D);
+			omg(i) = D(1);
 		
-		if(plotVects)
-			v = V(:,1);
-			eigVects(:,i) = v;
-			plotResults(r,v,omg(1:i),kVals(1:i),plotPack{1:end-1},plotPack{end}(1:i,:))
-		else
-			plotResults(r,[],omg(1:i),kVals(1:i),plotPack{1:end-1},plotPack{end}(1:i,:))
+		if(livePlot)
+			if(plotVects)
+				v = V(:,1);
+				eigVects(:,i) = v;
+				PlotResults(r,v,omg(1:i),kVals(1:i),plotPack{1:end-2},plotPack{end-1}(1:i,:))
+			else
+				PlotResults(r,[],omg(1:i),kVals(1:i),plotPack{1:end-2},plotPack{end-1}(1:i,:))
+			end
+
+			disp([num2str(i) ': k = ' num2str(k)]);
 		end
 		
-		disp([num2str(i) ': k = ' num2str(k)])
+		catch
+			%warning('There was an error with eigs')
+		end
 	
 	end
 	
@@ -110,17 +118,17 @@ function [M12,M23,SW,dg1dr,d2g1dr2,rInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,
 	g0M = sparse(diagn,diagn,g0);
 	zer = sparse(sz,sz);
 	
-	dg1dr = dfdr;
-	%dg1dr(1,:) = 0;
-	%dg1dr(end,:) = 0;
-	%dg1dr(:,1) = zeros(sz,1);
-	%dg1dr(:,end) = dg1dr(:,1);
-	
 	dg1du = ddu;
 	dg1du(1,:) = 0;
 	dg1du(end,:) = 0;
 	%dg1du(:,1) = 0;
 	%dg1du(:,end) = 0;
+	
+	dg1dr = dudr*dg1du;
+	%dg1dr(1,:) = 0;
+	%dg1dr(end,:) = 0;
+	%dg1dr(:,1) = 0;
+	%dg1dr(:,end) = 0;
 	
 	d2g1du2 = dg1du^2;
 	%d2g1du2(1,:) = 0;
