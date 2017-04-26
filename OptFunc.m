@@ -2,9 +2,11 @@ function maxDif=OptFunc(xpar)
 	
 	%ARGS
 	curveParam = xpar(1);
-	domain1    = -xpar(2);
+	%domain1    = -xpar(2);
+	domain1	 = 0;
 	domain2    = xpar(2);
-	tdomain1   = -xpar(3);
+	%tdomain1   = -xpar(3);
+	tdomain1	 = 0;
 	tdomain2   = xpar(3);
 	numPoints  = xpar(4);
 	
@@ -23,7 +25,7 @@ function maxDif=OptFunc(xpar)
 	plotPack = {0,0,false,0,0,0,false};
 	
 	%*Data collection*
-	[omg,eigVects,r] = GetData(numKVals,kVals,logisParams,sz,@bilogit,@dbilogit,plotPack);
+	[omg,eigVects,r] = GetData(numKVals,kVals,logisParams,sz,@halfbilogit,@dhalfbilogis,plotPack);
 	%abs(diff(omg))
 	maxDif = max(abs(diff(omg)));
 	if(~maxDif)

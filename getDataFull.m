@@ -20,11 +20,21 @@ function [omg,eigVects,r]=GetDataFull(numKVals,kVals,logisParams,numPoints,trans
 	u = transform(r,logisParams{:});
 	sz = numel(u);
 	
-	rho0 = 1./(1 + r.^2./8).^2;
-	g0 = r./(2.*(r.^2./8 + 1));
+	rho0 = 1./(1 + u.^2./8).^2;
+	g0 = u./(2.*(u.^2./8 + 1));
 	
-	[M12,M23,SW,dg1dr,d2g1dr2,rInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams,dtransform);
-	B = diag([ones(1,sz),ones(1,2*sz)]);
+	[M12,M23,SW,dg1du,d2g1du2,uInvM,ident,rho0M]=BuildMatrices(r,u,sz,rho0,g0,logisParams,dtransform);
+	M12 = full(M12);
+	M23 = full(M23);
+	SW = full(SW);
+	dg1du = full(dg1du);
+	d2g1du2 = full(d2g1du2);
+	uInvM = full(uInvM);
+	ident = full(ident);
+	rho0M = full(rho0M);
+	
+	
+	B = diag([ones(1,sz),zeros(1,2*sz)]);
 	
 	omg = zeros(numKVals,1);
 	if(plotVects)
@@ -40,23 +50,25 @@ function [omg,eigVects,r]=GetDataFull(numKVals,kVals,logisParams,numPoints,trans
 		k = kVals(i);
 		M11 = -k^2*ident;
 		M13 = -k^2*rho0M;
-		M33 = -(d2g1dr2 + rInvM*dg1dr - k^2*ident);
+		M33 = -d2g1du2 - uInvM*dg1du + k^2*ident;
 
 		A = [M11 M12 M13
 			SW,[M23;M33]];
-		
+		A(2*sz+1,:) = 0;
+		A(2*sz+1,2*sz+1) = 1;
+		A(2*sz+1,2*sz+2) = -1;
 		
 		try
 			[V,D] = eig(A,B,'vector');
 		
 			DF = D(~imag(D) & isfinite(D));
-			[minDF,minDFI] = min(DF);
-			omg(i) = minDF;
+			[maxDF,maxDFI] = max(DF);
+			omg(i) = maxDF;
 		
 			if(livePlot)
 				if(plotVects)
 					VF = V(:,~imag(D) & isfinite(D));
-					v = VF(:,minDFI);
+					v = VF(:,maxDFI);
 					eigVects(:,i) = v;
 					PlotResults(r,v,omg(1:i),kVals(1:i),plotPack{1:end-2},plotPack{end-1}(1:i,:))
 				else
@@ -76,84 +88,4 @@ function [omg,eigVects,r]=GetDataFull(numKVals,kVals,logisParams,numPoints,trans
 	
 	
 end
-
-function [M12,M23,SW,dg1dr,d2g1dr2,rInvM,ident,rho0M]=buildMatrices(r,u,sz,rho0,g0,logisParams,dtransform)
-	
-	ident = eye(sz);
-	rInvM = diag(1./r);
-	
-	i = [(2:sz-1)';(2:sz-1)'];
-	j = [(3:sz)';(1:sz-2)'];
-	v = [ones(sz-2,1);-ones(sz-2,1)];
-	
-	%Derivatives:
-	shft = circshift(u,-2);
-	preDif = shft(1:end-2)-u(1:end-2);
-	difu = [preDif;preDif];
-	
-	ddu = sparse(i,j,v./difu,sz,sz);
-	ddu(1,1) = -1/(u(2)-u(1));
-	ddu(1,2) = -ddu(1,1);
-	ddu(sz,sz) = 1/(u(end)-u(end-1));
-	ddu(sz,sz-1) = -ddu(sz,sz);
-	
-	ddu = full(ddu);
-	
-	d2du2 = ddu^2;
-	
-	dudr = diag(dtransform(1,r,logisParams{:}));
-	d2udr2 = diag(dtransform(2,r,logisParams{:}));
-	%d2dudr(1,:) = zeros(1,sz);
-	%d2dudr(end,:) = d2dudr(1,:);
-	
-	dfdr = dudr*ddu;
-	d2fdr2 = (dudr^2)*d2du2 + d2udr2*ddu;
-	%d2fdr2 = d2udr2*ddu;
-	
-	rho0M = diag(rho0);
-	%g0 = 4.*r./(8 + r.^2);
-	g0M = diag(g0);
-	zer = zeros(sz);
-	
-	dg1du = ddu;
-	%dg1du(1,:) = 0;
-	%dg1du(end,:) = 0;
-	%dg1du(:,1) = 0;
-	%dg1du(:,end) = 0;
-	
-	dg1dr = dudr*dg1du;
-	dg1dr(1,:) = 0;
-	dg1dr(end,:) = 0;
-	dg1dr(:,1) = 0;
-	dg1dr(:,end) = 0;
-	
-	d2g1du2 = dg1du^2;
-	%d2g1du2(1,:) = 0;
-	%d2g1du2(end,:) = 0;
-	%d2g1du2(:,1) = 0;
-	%d2g1du2(:,end) = 0;
-	
-	d2g1dr2 = (dudr^2)*d2g1du2 + d2udr2*dg1du;
-	d2g1dr2(1,:) = 0;
-	d2g1dr2(end,:) = 0;
-	%d2g1dr2(:,1) = 0;
-	%d2g1dr2(:,end) = 0;
-	
-	%M11 = -k^2*ident;
-	M12 = -(dfdr + rInvM);
-	%M13 = -k^2*rho0M;
-	%M21 = deriv + g0M;
-	%M22 = ident;
-	M23 = rho0M*dg1dr;
-	%M31 = ident;
-	%M32 = zer;
-	%M33 = -(deriv2 + rInvM*deriv - k^2*ident);
-	
-	SW = [dfdr+g0M, ident
-		ident,zer];
-	
-end
-
-
-
 
