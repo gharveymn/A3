@@ -1,17 +1,28 @@
 function RunMeFirst
 	
-	rMax = 20;
+	rMax = 10;
 	%numPts = 1000000;
 	
-	h = 0.00001;
+	h = 0.001;
 	rinit = (0.00001:h:rMax)';
 	
 	%squeeze the domain
-	r = bilogis(rinit,10);
-	%r = rinit;
+	%r = bilogis(rinit,10);
+	r = rinit;
 	rInv = 1./r;
-	p0Curr = exp(-1./10.*r.^2);
+	%p0Curr = exp(-1./10.*r.^2);
+	
+	
+	%Pathological function
 	%p0Curr = 10000000.*sin(1000.*r).*cos(300*r).*tan(40.*r);
+	
+	%Let's try the Weierstrass Function!
+	as = bsxfun(@power,0.6,(1:200)');
+	bs = bsxfun(@power,10,(1:200)');
+	p0Curr = (sum(as.*cos(pi*bs*r')))';
+	%How does this even converge? This is voodoo magic.
+	
+	
 	%p0Curr(end) = 0;
 	p0Last = zeros(size(p0Curr,1),1);
 	phi0 = p0Last;
@@ -19,8 +30,6 @@ function RunMeFirst
 	%p0Curr = 1./(1 + r.^2./8).^2;
 	%p0Last = zeros(size(p0Curr,1)+2,1);
 	%phi0 = -log(p0Curr);
-	
-	eps = 10^-25;
 	
 	%p0Comp = 1./(1 + r.^2./8).^2;
 	%phi0Comp = -log(p0Comp);
@@ -48,6 +57,8 @@ function RunMeFirst
 	d = eps+1;
 	
 	while(d > eps)
+		
+		%pause(1)
 		
 		p0Last = p0Curr;
 		
@@ -83,13 +94,9 @@ function RunMeFirst
 		d = sum(difVec);
 		%d = sum((p0Last(1:10:end) - p0Curr(1:10:end)).^2);
 		disp(d)
+		
 	end
-	disp(i)
-	
-	difVec = (p0Last - p0Curr).^2;
-	
-	figure(2)
-	plot(r,difVec);
+	disp(['Done in ' num2str(i) ' iterations.'])
 	
 	
 end
