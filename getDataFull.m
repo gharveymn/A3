@@ -6,7 +6,6 @@ function [omg,eigVects,r]=GetDataFull(numKVals,kVals,logisParams,numPoints,trans
 	
 	r = linspace(logisParams{2},logisParams{3},numPoints)';
 	
-	
 	badzero = find(~r);
 	if(~isempty(badzero))
 		r(badzero) = r(badzero+1)/2;

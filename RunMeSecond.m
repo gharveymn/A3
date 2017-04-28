@@ -47,7 +47,7 @@ function figs=RunMeSecond
 	plotPack = [par.domain,{par.plotVects},{par.useScatter},{figs},{clrs},{par.livePlot}];
 	
 	%*Data collection*
-	[omg,eigVects,r] = GetData(numKVals,kVals,logisParams,sz,par.T,par.dT,plotPack);
+	[omg,eigVects,r] = GetDataFull(numKVals,kVals,logisParams,sz,par.T,par.dT,plotPack);
 	
 	[oM,oMInd] = max(real(omg));
 	disp(['Max -omega^2 found at k = ' num2str(kVals(oMInd))])

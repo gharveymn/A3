@@ -9,7 +9,7 @@ function BilogisDemo
 	f1=figure('Position', [100, 200, 400, 300]);
 	p1 = plot(r,y1,'color',cr);
 	axis([0,1,0,1])
-	title('Consistent curves between any two real subsets')
+	title('Consistent logis/logit between any two domains')
 	
 	y2 = halfbilogis(r,c3,0,1,0,1);
 	f2=figure('Position', [600, 200, 400, 300]);
