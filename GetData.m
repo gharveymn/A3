@@ -55,7 +55,7 @@ function [omg,eigVects,r]=GetData(numKVals,kVals,logisParams,numPoints,transform
 		A(2*sz+1,2*sz+1) = 1;
 		A(2*sz+1,2*sz+2) = -1;
 		
-		opts = struct('isreal',1,'p',50,'maxit',200,'disp',0,'v0',v0);
+		opts = struct('isreal',1,'p',sz,'maxit',200,'disp',0,'v0',v0,'tol',1e-32);
 		
 		try
 			[V,D] = eigs(A,B,3*sz,'sm',opts);

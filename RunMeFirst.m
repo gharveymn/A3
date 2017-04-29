@@ -78,9 +78,7 @@ function RunMeFirst
 		%r = r(1:end-2);
 		
 		set(groot,'currentfigure',f1);
-		%set(p1,'XData',r);
 		set(p1,'YData',p0Curr);
-		%set(p2,'XData',r);
 		set(p2,'YData',phi0);
 		drawnow;
 		i = i +1;

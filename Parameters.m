@@ -2,11 +2,12 @@ function par=Parameters
 	
 	%Data analysis parameters
 	par.plotVects = true;
-	par.useScatter = true;
+	par.useScatter = false;
 	par.livePlot = true;
 	
 	
 	%Mathematical constraints
+	par.numPoints = 100;
 	par.curveParam = 10;%Higher implies higher slope
 	par.rMin = -10;
 	par.rMax = 10;
@@ -19,11 +20,11 @@ function par=Parameters
 	
 	
 	%Data collection parameters
-	par.numPoints = 100;
-	par.kMin = 0.1;
-	par.kMax = 0.5;
-	par.numKVals = 20;
+	par.numKVals = 1000;
+	par.kMin = 0.209;
+	par.kMax = 0.225;
 	par.numEigs = 1;
+	par.getDataFunc = @GetData;
 	
 	
 end

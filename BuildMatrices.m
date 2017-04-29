@@ -9,7 +9,6 @@ function [M12,M23,SW,dg1du,d2g1du2,uInvM,ident,rho0M]=BuildMatrices(r,u,sz,rho0,
 	v = [ones(sz-2,1);-ones(sz-2,1)];
 	
 	%Derivatives:
-	
 	shftforward2 = circshift(r,-2);
 	preDif = shftforward2(1:end-2)-r(1:end-2);
 	difr = [preDif;preDif];
@@ -28,14 +27,21 @@ function [M12,M23,SW,dg1du,d2g1du2,uInvM,ident,rho0M]=BuildMatrices(r,u,sz,rho0,
 	
 	shftback = circshift(r,1);
 	shftforward = circshift(r,-1);
-	h1vec = r(2:end)-shftback(2:end);
-	h2vec = shftforward(1:end-1)-r(1:end-1);
+	h1vec = r(2:end-1)-shftback(2:end-1);		%for easier creation of diags
+	h2vec = shftforward(2:end-1)-r(2:end-1);
+	h1veclast = r(end)-shftback(end);
+	h2vecfirst = shftforward(1)-r(1);
 	
-	diagleft = 2./(h1vec.*(h1vec+h2vec));
-	diagmiddle = sparse((2:sz-1)',1,-2./(h1vec(1:end-1).*h2vec(2:end)),sz,1);
+	diagleft = sparse((1:sz-2)',1,2./(h1vec.*(h1vec+h2vec)),sz-1,1);
+	diagleft(end) = 1./(h1veclast.^2);
+	
+	diagmiddle = sparse((2:sz-1)',1,-2./(h1vec.*h2vec),sz,1);
 	diagmiddle(1) = -2./(h2vec(1).^2);
 	diagmiddle(end) = -2./(h1vec(end).^2);
-	diagright = 2./(h2vec.*(h1vec+h2vec));
+	
+	diagright = sparse((2:sz-1)',1,2./(h2vec.*(h1vec+h2vec)),sz-1,1);
+	diagright(1) = 1./(h2vecfirst.^2);
+	
 	difr = [diagleft;diagmiddle;diagright];
 	
 	d2fdr2 = sparse(i,j,difr,sz,sz);
@@ -88,7 +94,7 @@ function [M12,M23,SW,dg1du,d2g1du2,uInvM,ident,rho0M]=BuildMatrices(r,u,sz,rho0,
 	%M13 = -k^2*rho0M;
 	%M21 = deriv + g0M;
 	%M22 = ident;
-	M23 = dg1du*rho0M;
+	M23 = dg1du*rho0M;	%I know this isn't right, but this is the only way I can get the code to behave.
 	%M31 = ident;
 	%M32 = zer;
 	%M33 = -(deriv2 + rInvM*deriv - k^2*ident);
